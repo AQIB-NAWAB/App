@@ -6,7 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
-import type {ReportActionListItemType, ReportListItemType, SearchListItem, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, ReportListItemType, SearchListItem, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -158,6 +158,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const previousReportActions = usePrevious(reportActions);
     const {translate} = useLocalize();
+    const searchListRef = useRef<SelectionListHandle | null>(null);
+
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
     const {canUseTableReportView} = usePermissions();
@@ -374,11 +376,11 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 return;
             }
 
-            const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORTID;
+            const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const isTransactionItem = isTransactionListItemType(item);
 
             let reportID =
-                isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORTID
+                isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
                     ? item.transactionThreadReportID
                     : item.reportID;
 
@@ -395,7 +397,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             }
 
             // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
-            if (isTransactionItem && reportID === CONST.REPORT.UNREPORTED_REPORTID) {
+            if (isTransactionItem && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 reportID = generateReportID();
                 updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, reportID);
                 Navigation.navigate(
@@ -456,7 +458,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const canSelectMultiple = !isChat && !isTask && isLargeScreenWidth;
+    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || selectionMode?.isEnabled === true);
 
     const sortedSelectedData = sortedData.map((item) => {
         const baseKey = isChat
@@ -485,7 +487,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 <FullPageErrorView
                     shouldShow
                     subtitleStyle={styles.textSupporting}
-                    title={translate('errorPage.title', {isBreakline: !!shouldUseNarrowLayout})}
+                    title={translate('errorPage.title', {isBreakLine: !!shouldUseNarrowLayout})}
                     subtitle={translate('errorPage.subtitle')}
                 />
             </View>
@@ -540,14 +542,14 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     return (
         <SearchScopeProvider isOnSearch>
             <SearchList
-                ref={handleSelectionListScroll(sortedSelectedData)}
+                ref={searchListRef}
                 data={sortedSelectedData}
                 ListItem={ListItem}
                 onSelectRow={openReport}
                 onCheckboxPress={toggleTransaction}
                 onAllCheckboxPress={toggleAllTransactions}
                 canSelectMultiple={canSelectMultiple}
-                shouldPreventLongPressRow={isChat}
+                shouldPreventLongPressRow={isChat || isTask}
                 SearchTableHeader={
                     !shouldShowTableHeader ? undefined : (
                         <SearchTableHeader
@@ -579,6 +581,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 }
                 queryJSONHash={hash}
                 onViewableItemsChanged={onViewableItemsChanged}
+                onLayout={() => handleSelectionListScroll(sortedSelectedData, searchListRef.current)}
             />
         </SearchScopeProvider>
     );
