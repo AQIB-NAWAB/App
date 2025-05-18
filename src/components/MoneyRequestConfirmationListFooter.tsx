@@ -242,8 +242,8 @@ function MoneyRequestConfirmationListFooter({
     shouldShowAmountField = true,
     shouldShowTax,
     transaction,
-    transactionID,
     unit,
+    transactionID,
     onPDFLoadError,
     onPDFPassword,
     isReceiptEditable = false,
@@ -312,8 +312,6 @@ function MoneyRequestConfirmationListFooter({
     const canModifyTaxFields = !isReadOnly && !isDistanceRequest && !isPerDiemRequest;
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
-    // Do not hide fields in case of paying someone
-    const shouldShowAllFields = !!isPerDiemRequest || !!isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend || !!isEditingSplitBill;
     // Calculate the formatted tax amount based on the transaction's tax amount and the IOU currency code
     const taxAmount = getTaxAmount(transaction, false);
     const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
@@ -484,7 +482,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowMerchant,
-            isSupplementary: !isMerchantRequired,
+            isSupplementary: false,
         },
         {
             item: (
@@ -510,7 +508,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowDate,
-            isSupplementary: true,
+            isSupplementary: false,
         },
         {
             item: (
@@ -738,16 +736,9 @@ function MoneyRequestConfirmationListFooter({
         return badges;
     }, [firstDay, lastDay, translate, tripDays]);
 
-    const primaryFields: React.JSX.Element[] = [];
-    const supplementaryFields: React.JSX.Element[] = [];
-
-    classifiedFields.forEach((field) => {
-        if (field.shouldShow && !field.isSupplementary) {
-            primaryFields.push(field.item);
-        } else if (field.shouldShow && field.isSupplementary) {
-            supplementaryFields.push(field.item);
-        }
-    });
+    const fieldsToShow: React.JSX.Element[] = classifiedFields
+        .filter((field) => field.shouldShow && !field.isSupplementary)
+        .map((field) => field.item);
 
     const receiptThumbnailContent = useMemo(
         () => (
@@ -923,14 +914,7 @@ function MoneyRequestConfirmationListFooter({
                               }}
                           />
                       ))}
-            {primaryFields}
-            {!shouldShowAllFields && (
-                <ShowMoreButton
-                    containerStyle={[styles.mt1, styles.mb2]}
-                    onPress={toggleShouldExpandFields}
-                />
-            )}
-            <View style={[styles.mb5]}>{shouldShowAllFields && supplementaryFields}</View>
+            {fieldsToShow}
         </>
     );
 }

@@ -543,7 +543,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     translationKey: 'task.markAsIncomplete',
                     isAnonymousAction: false,
                     action: callFunctionIfActionIsAllowed(() => {
-                        Navigation.dismissModal();
+                        Navigation.goBack(backTo);
                         reopenTask(report);
                     }),
                 });
@@ -1053,7 +1053,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                         containerStyle={styles.mt5}
                         promotedActions={promotedActions}
                     />
-
                     {menuItems.map((item) => (
                         <MenuItem
                             key={item.key}

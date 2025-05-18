@@ -8,7 +8,7 @@ import BaseImage from './BaseImage';
 import {ImageBehaviorContext} from './ImageBehaviorContextProvider';
 import type {ImageOnLoadEvent, ImageProps} from './types';
 
-function Image({source: propsSource, isAuthTokenRequired = false, onLoad, objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL, style, ...forwardedProps}: ImageProps) {
+function Image({source: propsSource, isAuthTokenRequired = false, onLoad,onLoadEnd, objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL, style, ...forwardedProps}: ImageProps) {
     const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
     const isObjectPositionTop = objectPosition === CONST.IMAGE_OBJECT_POSITION.TOP;
     const session = useSession();
@@ -36,6 +36,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
             const {width, height} = event.nativeEvent;
 
             onLoad?.(event);
+            onLoadEnd?.();
             updateAspectRatio(width, height);
         },
         [onLoad, updateAspectRatio],
