@@ -6175,7 +6175,15 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    let currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+
+     // Fallback: if no parent chat was passed and the selected participant is a policy expense chat,
+    // resolve the parent chat from the participant's reportID to avoid falling back to self DM.
+    if (!currentChatReport && participantParams?.participant?.isPolicyExpenseChat && participantParams.participant.reportID) {
+        currentChatReport = getReportOrDraftReport(participantParams.participant.reportID);
+  }
+
+
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
     const existingTransactionID =

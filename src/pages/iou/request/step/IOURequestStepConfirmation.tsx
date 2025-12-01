@@ -176,7 +176,7 @@ function IOURequestStepConfirmation({
         transactionReport && !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id, undefined, false);
     const report = useMemo(() => {
         if (isUnreported) {
-            return undefined;
+            return getReportOrDraftReport(reportID);
         }
         if (shouldUseTransactionReport) {
             return transactionReport;
