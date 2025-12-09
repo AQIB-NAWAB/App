@@ -272,8 +272,7 @@ function IOURequestStepAmount({
         // so we need to handle participant selection based on available workspace settings
         if (shouldAutoNavigateToDefaultWorkspace(iouType, defaultExpensePolicy, personalPolicy)) {
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
-            const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-            const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
+            const transactionReportID = activePolicyExpenseChat?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
             const isReturningFromConfirmationPage = !!transaction?.participants?.length;
 
             const resetToDefaultWorkspace = () => {

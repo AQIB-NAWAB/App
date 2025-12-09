@@ -3,6 +3,7 @@ import {createPoliciesSelector} from '@selectors/Policy';
 import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -63,6 +64,24 @@ const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
     };
 
 const policiesSelector = (policies: OnyxCollection<Policy>) => createPoliciesSelector(policies, policySelector);
+
+type ShouldAutoReportParams = {
+    action: ValueOf<typeof CONST.IOU.ACTION>;
+    isPolicyExpenseChat: boolean;
+    policy?: OnyxEntry<Policy>;
+};
+
+function shouldAutoReportToPolicyExpenseChat({action, isPolicyExpenseChat, policy}: ShouldAutoReportParams): boolean {
+    if (!isPolicyExpenseChat || action !== CONST.IOU.ACTION.CREATE) {
+        return true;
+    }
+
+    if (policy?.isPolicyExpenseChatEnabled === false) {
+        return false;
+    }
+
+    return true;
+}
 
 type IOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS>;
@@ -125,7 +144,6 @@ function IOURequestStepParticipants({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const personalPolicy = useMemo(() => Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL), [allPolicies]);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -288,11 +306,7 @@ function IOURequestStepParticipants({
             selectedReportID.current = firstParticipantReportID || generateReportID();
 
             // IOUs are always reported. non-CREATE actions require a report
-            if (!isPolicyExpenseChat || action !== CONST.IOU.ACTION.CREATE) {
-                shouldAutoReport.current = true;
-            } else {
-                shouldAutoReport.current = !!policy?.autoReporting || !!personalPolicy?.autoReporting;
-            }
+            shouldAutoReport.current = shouldAutoReportToPolicyExpenseChat({action, isPolicyExpenseChat, policy});
         },
         [
             isSplitRequest,
@@ -305,7 +319,6 @@ function IOURequestStepParticipants({
             trackExpense,
             initialTransactionID,
             lastSelectedDistanceRates,
-            personalPolicy?.autoReporting,
         ],
     );
 
@@ -446,4 +459,5 @@ function IOURequestStepParticipants({
 
 IOURequestStepParticipants.displayName = 'IOURequestStepParticipants';
 
+export {shouldAutoReportToPolicyExpenseChat};
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepParticipants));
