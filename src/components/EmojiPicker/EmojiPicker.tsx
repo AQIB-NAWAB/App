@@ -213,10 +213,9 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             innerContainerStyle={styles.popoverInnerContainer}
             anchorDimensions={emojiAnchorDimension.current}
             avoidKeyboard
-            shoudSwitchPositionIfOverflow
+            shouldSwitchPositionIfOverflow
             shouldEnableNewFocusManagement
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-            shouldUseNewModal
         >
             <FocusTrapForModal active={isEmojiPickerVisible}>
                 <View>

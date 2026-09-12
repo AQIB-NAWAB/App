@@ -11,6 +11,7 @@ import Image from './Image';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import type {TransactionListItemType} from './SelectionList/types';
+import Text from './Text';
 import ThumbnailImage from './ThumbnailImage';
 
 type Style = {height: number; borderRadius: number; margin: number};
@@ -183,11 +184,13 @@ function ReceiptImage({
     }
 
     return (
-        <Image
-            source={{uri: source}}
-            style={[style ?? [styles.w100, styles.h100], styles.overflowHidden]}
-            isAuthTokenRequired={isAuthTokenRequired}
-        />
+        <View>
+            <Image
+                source={{uri: source}}
+                style={[style ?? [styles.w100, styles.h100], styles.overflowHidden]}
+                isAuthTokenRequired={isAuthTokenRequired}
+            />
+        </View>
     );
 }
 

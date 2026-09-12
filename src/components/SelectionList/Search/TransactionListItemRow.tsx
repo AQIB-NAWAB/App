@@ -42,6 +42,7 @@ import DateCell from './DateCell';
 import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TextWithIconCell from './TextWithIconCell';
 import UserInfoCell from './UserInfoCell';
+import Text from '@components/Text';
 
 type CellProps = {
     // eslint-disable-next-line react/no-unused-prop-types
